@@ -1,7 +1,7 @@
 const router = require("express").Router();
 const User1 = require("../model/User");
 const Crypto = require("crypto-js");
-const verify = require("../middleware/verifytoken");
+const verify = require("../middleware/verifyToken");
 const { findById } = require("../model/User");
 //UPDATE
 router.put("/:id", verify, async (req, res) => {
