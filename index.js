@@ -9,7 +9,7 @@ mongoose.set("strictQuery", true);
 require("dotenv").config();
 const app = express();
 app.use(express.json());
-const port = 3000 || process.env.PORT;
+const PORT = 3000 || process.env.PORT;
 mongoose
   .connect(process.env.DATABASE_KEY, {
     useNewUrlParser: true,
@@ -20,6 +20,6 @@ mongoose
 app.use("/api/auth", authRoute);
 app.use("/api/users", userRoute);
 app.use("/api/movies", movieRoute);
-app.listen(port, () => {
-  console.log(`Sever running at ${port}`);
+app.listen(PORT, () => {
+  console.log(`Sever running at ${PORT}`);
 });

@@ -4,7 +4,7 @@ const CryptoJS = require("crypto-js");
 const User1 = require("../model/User");
 //REGISTER
 router.post("/register", async (req, res) => {
-  const otp = Math.floor(Math.floor(100000 + Math.random() * 900000));
+  // const otp = Math.floor(Math.floor(100000 + Math.random() * 900000));
   const newUser = User1({
     username: req.body.username,
     email: req.body.email,
@@ -12,7 +12,7 @@ router.post("/register", async (req, res) => {
       req.body.password,
       process.env.SECRET_KEY
     ).toString(),
-    otp:otp
+    isAdmin:req.body.isAdmin
   });
   try {
     const user = await newUser.save();
