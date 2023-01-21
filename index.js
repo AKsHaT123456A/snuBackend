@@ -17,7 +17,7 @@ mongoose
   })
   .then(() => console.log("Database Connected"))
   .catch((err) => console.log(err));
-app.use("/api/auth", authRoute);
+app.use("/auth", authRoute);
 app.use("/api/users", userRoute);
 app.use("/api/movies", movieRoute);
 app.listen(port, () => {
