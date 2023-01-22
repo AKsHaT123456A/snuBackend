@@ -34,7 +34,6 @@ const UserSchema = new mongoose.Schema(
       message: "Provided email is invalid.",
     }, },//[a-z @.A-Z]+$
   },
-  { timestamps: true }
 );
 const User1 = mongoose.model("User", UserSchema);
 module.exports = User1;
