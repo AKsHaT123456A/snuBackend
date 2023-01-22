@@ -7,6 +7,7 @@ const seatSchema = new mongoose.Schema(
       isReserved: { type: Array}
     }]
   },
+  { timestamps: true }
 );
 const Seat=mongoose.model("Show",seatSchema);
 module.exports=Seat;

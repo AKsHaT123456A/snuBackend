@@ -27,6 +27,7 @@ const MovieSchema = new mongoose.Schema(
       },
     ],
   },
+  { timestamps: true }
 );
 const Movie = mongoose.model("Movie", MovieSchema);
 module.exports = Movie;
