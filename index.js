@@ -20,6 +20,6 @@ mongoose
 app.use("/api/auth", authRoute);
 app.use("/api/users", userRoute);
 app.use("/api/movies", movieRoute);
-app.listen(PORT, () => {
+app.listen(PORT,() => {
   console.log(`Sever running at ${PORT}`);
 });

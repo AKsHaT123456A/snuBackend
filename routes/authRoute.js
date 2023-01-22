@@ -5,54 +5,78 @@ const User1 = require("../model/User");
 //REGISTER
 router.post("/register", async (req, res) => {
   // const otp = Math.floor(Math.floor(100000 + Math.random() * 900000));
-  const newUser = User1({
+  const existingUser = await User1.findOne({ email: req.body.email });
+  if (existingUser) {
+    return res.status(400).json("User already exists!");
+  }
+  const newUser = new User1({
     username: req.body.username,
     email: req.body.email,
     password: CryptoJS.AES.encrypt(
       req.body.password,
       process.env.SECRET_KEY
     ).toString(),
-    isAdmin:req.body.isAdmin
+    isAdmin: req.body.isAdmin,
   });
   try {
     const user = await newUser.save();
+
     // emailer(user.email,user.otp);
     res.status(201).json(user);
   } catch (err) {
-    res.status(500).json(err);
+    res.status(500).json({ error: err.message });
   }
 });
 //LOGIN
 router.post("/login", async (req, res) => {
   try {
     const user = await User1.findOne({ email: req.body.email });
-    !user && res.status(401).json("Email or Username not found!");
+    if(!user) return res.status(400).json("Email not found!");
     const bytes = CryptoJS.AES.decrypt(user.password, process.env.SECRET_KEY);
     const originalPassword = bytes.toString(CryptoJS.enc.Utf8);
-    originalPassword !== req.body.password &&
-      res.status(401).json("Wrong Password");
+    if(originalPassword !== req.body.password) 
+      return res.status(400).json("Wrong Password");
+    var payload = {
+      username: user.username,
+      email: user.email,
+      phone: user.phone,
+      isAdmin: user.isAdmin,
+      id: user.id,
+    };
     const accessToken = jwt.sign(
-      { id: user._id, isAdmin: user.isAdmin },
+      { payload, isAdmin: user.isAdmin },
       process.env.SECRET_KEY,
       { expiresIn: "1d" }
     );
     const { password, ...info } = user._doc;
-    res.status(201).json({...info, accessToken});
+    res.status(201).json({ ...info, accessToken });
   } catch (error) {
-    res.status(500).json(error);
-
+    res.status(500).json({ error: error.message });
+  }
+});
+router.post("/verifytoken", async (req, res) => {
+  try {
+    const token = req.header("auth-token");
+    if (!token) return res.json(false);
+    const verified = jwt.verify(token, process.env.SECRET_KEY);
+    if (!verified) return res.json(false);
+    const user = await User1.findById(verified.id);
+    if (!user) return res.json(false);
+    res.json(true);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
   }
 });
 //verification
 router.patch("/register/verify", async (req, res) => {
   try {
-    const otp =req.body.otp;
+    const otp = req.body.otp;
     if (!otp)
       return res.status(400).json({
         success: false,
         message: "Send  OTP",
       });
-    const userExist = await User1.findOne({otp});
+    const userExist = await User1.findOne({ otp });
     console.log(userExist._id);
     if (!userExist.otp)
       return res.status(400).json({
@@ -60,7 +84,10 @@ router.patch("/register/verify", async (req, res) => {
         message: "You are not registered.",
       });
     if (userExist.otp === otp) {
-      await User1.findByIdAndUpdate({ _id: userExist._id}, { isVerified: true });
+      await User1.findByIdAndUpdate(
+        { _id: userExist._id },
+        { isVerified: true }
+      );
       res.status(200).json({
         success: true,
         message: "OTP correct. User is verified.",
