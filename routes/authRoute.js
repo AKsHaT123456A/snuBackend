@@ -58,7 +58,7 @@ router.post("/verifytoken", async (req, res) => {
   try {
     const token = req.header("auth-token");
     if (!token) return res.json(false);
-    const verified = jwt.verify(token, process.env.SECRET_KEY);
+    const verified = jwt.verify(token, process.env.SECRET_KEY,{algorithm:'HS256'});
     if (!verified) return res.json(false);
     const user = await User1.findById(verified.id);
     if (!user) return res.json(false);
