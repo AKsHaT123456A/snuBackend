@@ -84,7 +84,7 @@ router.get("/stats", async (req, res) => {
         },
         {
             $group:{
-                _id:"$month",
+                _id:{$month},
                 total:{$sum:1}
             }
         }

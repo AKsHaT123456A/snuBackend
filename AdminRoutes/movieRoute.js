@@ -1,7 +1,8 @@
 const router = require("express").Router();
 const Movie = require("../model/movie");
 const { findById } = require("../model/User");
-const Seats = require("../model/seats");
+const SeatReserved = require("../model/seats");
+const seatMapping = require("../model/seatMapping");
 const User = require("../model/User");
 const Datedetails = new Date();
 //CREATE
@@ -21,46 +22,11 @@ router.post("/:id/getTheatrebyMovies", async (req, res) => {
     }
   } else res.status(403).json("YOU ARE NOT AUTHENTICATED");
 });
-//UPDATE
-// router.put("/:id", verify, async (req, res) => {
-//   if (req.user.id === req.params.id || req.user.isAdmin) {
-//     if (req.body.password) {
-//       req.body.password = CryptoJS.AES.decrypt(
-//         user.password,
-//         process.env.SECRET_KEY
-//       );
-//     }
-//     try {
-//       const updatedUser = await User1.findByIdAndUpdate(
-//         req.params.id,
-//         {
-//           $set: req.body,
-//         },
-//         { new: true }
-//       );
-//       res.status(201).json(updatedUser);
-//     } catch (error) {
-//       res.status(500).json(error);
-//     }
-//   } else res.status(403).json("Can't reach admin account");
-// });
-// //Delete
-// router.delete("/:id", verify, async (req, res) => {
-//   if (req.user.id === req.params.id || req.user.isAdmin) {
-//     try {
-//       await User.findByIdAndDelete(req.params.id);
-//       res.status(201).send("Account Deleted!!");
-//     } catch (error) {
-//       res.status(500).json(error);
-//     }
-//   } else res.status(403).json("You can delete only your account!");
-// });
-//GET
 router.get("/find/:theatre", async (req, res) => {
   try {
     let newSeatDetails = [{}];
     let newSeatReservation = [];
-    const show = await Movie.find({ theatre: req.params.theatre }).sort({
+    const show = await Movie.findOne({ theatre: req.params.theatre }).sort({
       _id: -1,
     });
     //numberof shows to be given by admin console.log(show[1].shows[0].noOfSeats);
@@ -71,8 +37,9 @@ router.get("/find/:theatre", async (req, res) => {
       newSeatDetails.splice(i, 0, `${theatre}${show[0].shows[0].audi}${i}`),
         (newSeatReservation[i] = isReserved);
     }
-    const newseatDetails = Seats({
-      seats: [{ seatid: [newSeatDetails, newSeatReservation] }],
+    const newseatDetails = new Seats({
+      seats: [{ seatid: [newSeatDetails] }],
+      isReserved: [newSeatReservation],
     });
     const SeatDetails = await newseatDetails.save();
     res.status(201).json(SeatDetails);
@@ -80,36 +47,91 @@ router.get("/find/:theatre", async (req, res) => {
     res.status(501).json(error);
   }
 });
-router.get("/:nofSeats", (req, res) => {
-  let isReserved =[];
-  let seatId = [];
-  isReserved=[true];
-  let isNotReserved=[false];
-  let noOfSeats=req.params.nofSeats;
-  // console.log(req.query.seatid + " " + req.params.nofSeats);
-  for (var i = 0; i < noOfSeats; i++) {
-    let seattid=[];
-    seatId[i] = req.query.seatid;
-    // console.log(seatId[0][i]);
-    seattid=[seatId[0][i]];
-    console.log(seattid);
-    async (req, res) => {
-      const seatids = await Seats.findOne({ seats:[{seatid:[seattid,isNotReserved]}] });
-      console.log(seatids);
-      let id = seatids._id;
-      const Updatedseatids = await Seats.findByIdAndUpdate(
-        { id },
-        { $set: { seats: [{ seatid: [seatId[i],isReserved] }] } }
-      );}
-    console.log("OK");
-      // res.status(202).json(Updatedseatids);
+router.get("/reservation", async (req, res) => {
+  const { noOfReservedSeats, seatid } = req.body;
+  const theatreId = req.body.theatreId;
+  seatidArray = [];
+  const Newseat = await SeatReserved.findOne({ theatreId });
+  // console.log(Newseat);
+
+  if (!Newseat) {
+    const theatreId = req.body.theatreId;
+    // console.log(theatreId);
+    for (var i = 0; i < noOfReservedSeats; i++) {
+      seatidArray[i] = seatid[i];
+    }
+    // console.log(seatidArray);
+    const newReservation = new SeatReserved({
+      seatid: seatidArray,
+      noOfReservedSeats: noOfReservedSeats,
+      theatreId: theatreId,
+    });
+    Reservation = await newReservation.save();
+    // console.log(Reservation);
+    return res.status(200).json(Reservation);
   }
-  // console.log(seatId[5][0].split(" ")[1]);
-  // console.log(seatId.length);
+  if (Newseat) {
+    const newSeats = Newseat.noOfReservedSeats + noOfReservedSeats;
+    for (var i = 0; i < Newseat.noOfReservedSeats; i++) {
+      seatidArray[i] = Newseat.seatid[i];
+    }
+    let j = 0;
+    for (var i = Newseat.noOfReservedSeats; i < newSeats; i++) {
+      seatidArray[i] = seatid[j];
+      j++;
+    }
+    // console.log(seatidArray);
+    // console.log(Newseat._id)
+    const UpdatedReservation = await SeatReserved.findByIdAndUpdate(
+      { _id: Newseat._id },
+      { $set: { seatid: seatidArray, noOfReservedSeats: newSeats } }
+    );
+    return res.status(200).json(UpdatedReservation.seatid);
+  }
 });
-// catch(error){
-//   res.status(500).json(error);
-// }
+router.post("/Cancellation", async (req, res) => {
+  const { noOfCancelledSeats, seatid } = req.body;
+  const theatreId = req.body.theatreId;
+  const Newseat = await SeatReserved.findOne({ theatreId: theatreId });
+  const newSeats = Newseat.noOfReservedSeats - noOfCancelledSeats; //noOfSeats to be changed to noOfReservedSeats
+  const Number=Newseat.seatid.length;
+  let j=0,c=0;
+  for(var i=0;i<Number;i++){
+      if(Newseat.seatid[i]===seatid[j]&&j<noOfCancelledSeats){
+             c++;
+             j++;
+      }
+  }
+  if(c!==noOfCancelledSeats) return res.status(404).json("No such seat found");
+  for(var i=0;i<noOfCancelledSeats;i++)
+  {Newseat.seatid.remove(seatid[i]);}
+  newSeatCancelled=Newseat.seatid;
+  UpdatedReservation = await SeatReserved.findByIdAndUpdate(
+    { _id: Newseat._id },
+    { $set: { seatid:newSeatCancelled , noOfSeats: newSeats } }
+  );
+  const UpdatedReservationSeat= await SeatReserved.findById({_id:Newseat._id});
+  return res.status(200).json(UpdatedReservationSeat.seatid);
+});
+router.get("/seatMapping", async (req, res) => {
+  const seatMap = req.body.seatMap;
+  const price = req.body.price;
+  const theatreId = req.body.theatreId; //need theatre id from
+  const newmapDetails = new seatMapping({
+    seatMap: seatMap,
+    price: price,
+    theatreId: theatreId,
+  });
+  const mapDetails = await newmapDetails.save();
+  res.status(200).json(mapDetails);
+});
+router.post("/seatMappingReservation", async (req, res) => {
+  const seatmap = await seatMapping.findOne({ theatreId: req.body.theatreId });
+  if (!seatmap) return res.status(404).json("No such mapping found!");
+  const { theatreId, ...info } = seatmap._doc;
+  res.status(200).json(info);
+});
+
 // // GET ALL
 // router.get("/", verify, async (req, res) => {
 //   const query = req.query.new;

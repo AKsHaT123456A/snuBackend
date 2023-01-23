@@ -1,13 +1,10 @@
 const mongoose = require("mongoose");
 const seatSchema = new mongoose.Schema(
-  {
-    seats:[
-    {
-       seatid:{type:Array,required:true},
-      isReserved: { type: Array}
-    }]
+  { theatreId:{type:String,required:true},
+    seatid:{type:Array, required: true},
+    noOfReservedSeats:{type:Number,default:0,required:true}
   },
   { timestamps: true }
 );
-const Seat=mongoose.model("Show",seatSchema);
-module.exports=Seat;
+const SeatReserved = mongoose.model("SeatReserved", seatSchema);
+module.exports = SeatReserved;
