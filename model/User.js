@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 const UserSchema = new mongoose.Schema(
   {
-    username: { type: String, required: true ,
+    username: { type: String,
     //   validate: {
     //   validator: function (v) {
     //     var re = /^[a-z @.A-Z]+$'/;
