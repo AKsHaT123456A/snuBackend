@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 const UserSchema = new mongoose.Schema(
   {
-    username: { type: String,
+    username: { type: String,required:true,unique:true
     //   validate: {
     //   validator: function (v) {
     //     var re = /^[a-z @.A-Z]+$'/;
@@ -35,5 +35,5 @@ const UserSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
-const User1 = mongoose.model("User", UserSchema);
+const User1 = mongoose.model("User1", UserSchema);
 module.exports = User1;
