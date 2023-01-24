@@ -105,4 +105,9 @@ router.patch("/register/verify", async (req, res) => {
     });
   }
 });
+router.get("/forget",async(req,res)=>{
+  const user=await User1.findOneAndUpdate({email:req.body.email},{$set:{password:req.body.password}});
+  if(!user)return res.status(404).json("No such user found!");
+  return res.status(200).json("Password Updated!");
+})
 module.exports = router;

@@ -26,6 +26,7 @@ router.put("/:id", verify, async (req, res) => {
     }
   } else res.status(403).json("Can't reach admin account");
 });
+
 //Delete
 router.delete("/:id", verify, async (req, res) => {
   if (req.user.id === req.params.id || req.user.isAdmin) {

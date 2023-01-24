@@ -1,10 +1,12 @@
 //jshint esversion:6
 const express = require("express");
+const path =require("path");
 const mongoose = require("mongoose");
 const bodyParser = require("body-parser");
 const authRoute = require("./routes/authRoute");
 const userRoute = require("./routes/userRoute");
 const movieRoute = require("./AdminRoutes/movieRoute");
+const emailRoute = require("./AdminRoutes/emailRoutes");
 mongoose.set("strictQuery", true);
 require("dotenv").config();
 const app = express();
@@ -17,9 +19,12 @@ mongoose
   })
   .then(() => console.log("Database Connected"))
   .catch((err) => console.log(err));
+app.set("view engine", "ejs");
+app.use(express.static(path.join(__dirname, "public")));
 app.use("/api/auth", authRoute);
 app.use("/api/users", userRoute);
 app.use("/api/movies", movieRoute);
-app.listen(PORT,() => {
-  console.log(`Sever running at ${PORT}`);
+app.use("/api/success", emailRoute);
+app.listen(PORT, () => {
+  console.log(`Server running at ${PORT}`);
 });
