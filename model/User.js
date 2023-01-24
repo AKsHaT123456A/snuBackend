@@ -11,7 +11,7 @@ const UserSchema = new mongoose.Schema(
     // },
   },
     phone: {
-      type: Number,
+      type: String,
       // required: true,
 
       maxLength: [10, "Max length should be 10"],
@@ -27,7 +27,7 @@ const UserSchema = new mongoose.Schema(
     isAdmin: { type: Boolean, default: false },
     email: { type: String, required: true,validate: {
       validator: function (v) {
-        var re = /[a-z @.A-Z]+$/;
+        var re = /[a-z @.A-Z]+$/;//add . 
         return !v || !v.trim().length || re.test(v);
       },
       message: "Provided email is invalid.",
