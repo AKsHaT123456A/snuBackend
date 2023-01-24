@@ -37,7 +37,7 @@ router.delete("/:id", verify, async (req, res) => {
     } catch (error) {
       res.status(500).json(error);
     }
-  } else res.status(403).json("You can delete only your account!");
+  } else res.status(403).json("You can delete only your account!");//push,pull,inc;
 });
 //GET
 router.get("/", async (req, res) => {
@@ -48,7 +48,8 @@ router.get("/", async (req, res) => {
     if (!verified) return res.json("Token not valid!");
     const user = await User1.findById(verified.payload.id);
     if (!user) return res.json("No such user found!");
-    res.json(user);
+    const {password,...info}=user._doc;
+    res.json({info,token:token});
   } catch (e) {
     res.status(500).json({ error: e.message });
   }
