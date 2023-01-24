@@ -20,9 +20,9 @@ router.post("/register", async (req, res) => {
   });
   try {
     const user = await newUser.save();
-
+    const { password, ...info } = user._doc;
     // emailer(user.email,user.otp);
-    res.status(201).json(user);
+    res.status(201).json(...info);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
