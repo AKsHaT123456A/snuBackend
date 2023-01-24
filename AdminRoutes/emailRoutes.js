@@ -38,7 +38,7 @@ const sendPDF = async () => {
   const emailPath = path.resolve("./email-templates", "ticket.html");
 
   const replacements = {
-    name: req.body.username,
+    name: req.body.name,
     channel: req.body.movie,
   };
 

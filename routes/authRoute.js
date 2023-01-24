@@ -10,7 +10,7 @@ router.post("/register", async (req, res) => {
     return res.status(400).json("User already exists!");
   }
   const newUser = new User({
-    username: req.body.username,
+    name: req.body.name,
     email: req.body.email,
     phone:req.body.phone,
     password: CryptoJS.AES.encrypt(
@@ -38,7 +38,7 @@ router.post("/login", async (req, res) => {
     if(originalPassword !== req.body.password) 
       return res.status(400).json("Wrong Password");
     var payload = {
-      username: user.username,
+      name: user.name,
       email: user.email,
       phone: user.phone,
       isAdmin: user.isAdmin,
