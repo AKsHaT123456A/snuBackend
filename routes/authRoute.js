@@ -54,14 +54,14 @@ router.post("/login", async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 });
-router.post("/verifytoken", async (req, res) => {
+router.get("/verifytoken", async (req, res) => {
   try {
     const token = req.header("auth-token");
-    if (!token) return res.json(false);
+    if (!token) return res.json("false1");
     const verified = jwt.verify(token, process.env.SECRET_KEY,{algorithm:'HS256'});
-    if (!verified) return res.json(false);
+    if (!verified) return res.json("false2");
     const user = await User1.findById(verified.id);
-    if (!user) return res.json(false);
+    if (!user) return res.json("false3");
     res.json(true);
   } catch (e) {
     res.status(500).json({ error: e.message });
