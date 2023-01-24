@@ -30,7 +30,6 @@ router.post("/register", async (req, res) => {
 //LOGIN
 router.post("/login", async (req, res) => {
   try {
-    const a=0;
     const user = await User1.findOne({ email: req.body.email });
     if(!user) return res.status(400).json("Email not found!");
     const bytes = CryptoJS.AES.decrypt(user.password, process.env.SECRET_KEY);

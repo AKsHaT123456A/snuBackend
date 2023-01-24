@@ -39,13 +39,17 @@ router.delete("/:id", verify, async (req, res) => {
   } else res.status(403).json("You can delete only your account!");
 });
 //GET
-router.get("/find/:id", async (req, res) => {
+router.get("/", async (req, res) => {
   try {
-    const user = await User.findById(req.params.id);
-    const { password, ...info } = user._doc;
-    res.status(200).json(info);
-  } catch (error) {
-    res.status(500).json(error);
+    const token = req.header("auth-token");
+    if (!token) return res.json("No token found in header!");
+    const verified = jwt.verify(token, process.env.SECRET_KEY,{algorithm:'HS256'});
+    if (!verified) return res.json("Token not valid!");
+    const user = await User1.findById(verified.id);
+    if (!user) return res.json("No such user found!");
+    res.json(user);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
   }
 });
 // GET ALL
