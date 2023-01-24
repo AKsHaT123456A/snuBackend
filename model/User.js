@@ -12,7 +12,6 @@ const UserSchema = new mongoose.Schema(
   },
     phone: {
       type: Number,
-      unique: 1,
       // required: true,
 
       maxLength: [10, "Max length should be 10"],
