@@ -1,7 +1,7 @@
 const router=require("express").Router();
 const nodemailer = require("nodemailer");
 const path =require("path");
-const { createPDF } = require("../Services/createPDF");
+const { createPDF } = require("../Services/createPdf");
 const fs = require("fs");
 const handlebars = require("handlebars");
 router.post("/ticket",(req,res)=>{
