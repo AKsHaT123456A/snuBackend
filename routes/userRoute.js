@@ -1,5 +1,6 @@
 const router = require("express").Router();
 const User1 = require("../model/User");
+const jwt=require("jsonwebtoken");
 // const Crypto = require("crypto-js");
 const verify = require("../middleware/verifyToken");
 const { findById } = require("../model/User");
@@ -45,7 +46,7 @@ router.get("/", async (req, res) => {
     if (!token) return res.json("No token found in header!");
     const verified = jwt.verify(token, process.env.SECRET_KEY,{algorithm:'HS256'});
     if (!verified) return res.json("Token not valid!");
-    const user = await User1.findById(verified.id);
+    const user = await User1.findById(verified.payload.id);
     if (!user) return res.json("No such user found!");
     res.json(user);
   } catch (e) {
