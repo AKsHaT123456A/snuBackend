@@ -48,9 +48,7 @@ router.get("/", async (req, res) => {
     if (!verified) return res.json("Token not valid!");
     const user = await User1.findById(verified.payload.id);
     if (!user) return res.json("No such user found!");
-    const {password,...info}=user._doc;
-    res.json(info);
-    res.setHeader("auth-token",token);
+    res.json({...user._doc,token:token});
   } catch (e) {
     res.status(500).json({ error: e.message });
   }
