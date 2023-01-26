@@ -1,9 +1,9 @@
 const router = require("express").Router();
-const User1 = require("../model/User");
+const User1 = require("../models/User");
 const jwt=require("jsonwebtoken");
 // const Crypto = require("crypto-js");
 const verify = require("../middleware/verifyToken");
-const { findById } = require("../model/User");
+const { findById } = require("../models/User");
 //UPDATE
 router.put("/:id", verify, async (req, res) => {
   if (req.user.id === req.params.id || req.user.isAdmin) {
@@ -63,7 +63,7 @@ router.get("/getAll", verify, async (req, res) => {
         : await User.find();
       res.status(200).json(users);
     } catch (error) {
-      res.status(200).json(users);
+      res.status(500).json(error);
     }
   } else res.status(403).json("You are not allowed");
 });

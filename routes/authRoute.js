@@ -1,7 +1,7 @@
 const router = require("express").Router();
 const jwt = require("jsonwebtoken");
 const CryptoJS = require("crypto-js");
-const User = require("../model/User");
+const User = require("../models/User");
 //REGISTER
 router.post("/register", async (req, res) => {
   // const otp = Math.floor(Math.floor(100000 + Math.random() * 900000));

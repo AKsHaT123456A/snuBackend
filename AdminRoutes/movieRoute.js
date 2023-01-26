@@ -1,92 +1,195 @@
 const router = require("express").Router();
-const Movie = require("../model/movie");
-const { findById } = require("../model/User");
-const SeatReserved = require("../model/seats");
-const seatMapping = require("../model/seatMapping");
-const User = require("../model/User");
-const Datedetails = new Date();
-//CREATE
-router.post("/:id/getTheatrebyMovies", async (req, res) => {
-  const user = await User.findById({ _id: req.params.id });
-  if (user.isAdmin) {
-    const newMovie = Movie({
-      moviename: req.body.moviename,
-      theatre: req.body.theatre,
-      shows: req.body.shows,
-    });
-    try {
-      const movie = await newMovie.save();
-      res.status(201).json(movie);
-    } catch (err) {
-      res.status(500).json(err);
-    }
-  } else res.status(403).json("YOU ARE NOT AUTHENTICATED");
-});
-router.get("/find/:theatre", async (req, res) => {
+const Theatre = require("../models/theatre");
+const City = require("../models/city");
+const Show = require("../models/show");
+const Audi = require("../models/audi");
+const Movie = require("../models/movie");
+const { json } = require("body-parser");
+//add theatre by admin
+//check for admin later
+router.post("/addTheatre", async (req, res) => {
   try {
-    let newSeatDetails = [{}];
-    let newSeatReservation = [];
-    const show = await Movie.findOne({ theatre: req.params.theatre }).sort({
-      _id: -1,
-    });
-    //numberof shows to be given by admin console.log(show[1].shows[0].noOfSeats);
-    let j = 1;
-    let isReserved = false;
-    let theatre = req.params.theatre;
-    for (var i = 0; i < show[0].shows[0].noOfSeats; i++) {
-      newSeatDetails.splice(i, 0, `${theatre}${show[0].shows[0].audi}${i}`),
-        (newSeatReservation[i] = isReserved);
+    const { theatreName, city } = req.body;
+    const theatreId = theatreName + city;
+    const existingTheatreId = await Theatre.findOne({ theatreId });
+    if (existingTheatreId) {
+      return res
+        .status(400)
+        .json({ msg: "Theatre with same name and city already exists!" });
     }
-    const newseatDetails = new Seats({
-      seats: [{ seatid: [newSeatDetails] }],
-      isReserved: [newSeatReservation],
+    let Newtheatre = new Theatre({
+      theatreId,
+      theatreName,
+      city,
     });
-    const SeatDetails = await newseatDetails.save();
-    res.status(201).json(SeatDetails);
-  } catch (error) {
-    res.status(501).json(error);
+
+    theatre = await Newtheatre.save();
+    const existingCity = await City.findOne({ city });
+    if (existingCity == null) {
+      let newCity = new City({
+        city,
+      });
+      CityAdded = await newCity.save();
+    }
+    res.status(201).json(theatre);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
   }
+});
+
+//add audis
+router.post("/addAudi", async (req, res) => {
+  try {
+    const { audiId, numberOfRows, numberOfColumns, typesOfSeats, seats } =
+      req.body;
+
+    const existingAudi = await Audi.findOne({ audiId });
+
+    if (existingAudi) {
+      return res.status(400).json({ msg: "Audi Already Exists!" });
+    }
+
+    let audi = new Audi({
+      audiId,
+      numberOfColumns,
+      numberOfRows,
+      typesOfSeats,
+      seats,
+    });
+
+    audi = await audi.save();
+    res.json(audi);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+//add shows
+router.post("/addShow", async (req, res) => {
+  try {
+    const {
+      theatreId,
+      date,
+      movieName,
+      releaseDate,
+      time,
+      audi,
+      prices,
+      bookedSeats,
+    } = req.body;
+    const movieId=movieName+releaseDate;
+    const showId=theatreId+date+time;
+    const existingShow = await Show.findOne({ showId });
+
+    if (existingShow) {
+      return res
+        .status(400)
+        .json({
+          msg: "Show In same audi for same movie at same time already exists!",
+        });
+    }
+    let Newshow = new Show({
+      showId,
+      theatreId,
+      movieId,
+      movieName,
+      date,
+      time,
+      audi,
+      bookedSeats,
+      // typesOfPrices,
+      prices,
+    });
+    show = await Newshow.save();
+    const oldMovie=await Movie.find({movieId:movieId});
+    if(!oldMovie){
+    let Newmovie = new Movie({
+      movieId,
+      movieName,
+      city,
+    });
+    movie = await Newmovie.save();}
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+router.post("/city", async (req, res) => {
+  city = await City.find();
+  try {
+    res.status(200).json(city); 
+  } catch (error) {
+    res.status(500).json(error);
+  }
+});
+router.post("/movie", async ({body}, res) => {
+  const city=body;
+  movie = await Movie.find({city:city});
+  try {
+    res.status(200).json(movie); 
+  } catch (error) {
+    res.status(500).json(error);
+  }
+});
+
+router.post("/getShowByTheatre", async (req, res) => {
+  const {theatreId, date } = req.body;
+  const shows =await Show.find({ theatreId: theatreId, date: date });
+  try {
+    res.status(200).json(shows);      
+  } catch (error) {
+    res.status(500).json(error);
+  }
+});
+router.post("/getShowsByMovie", async (req, res) => {
+  const {movieId, date } = req.body;
+  const shows =await Show.find({ movieId: movieId, date: date });
+  try {
+    res.status(200).json(shows);      
+  } catch (error) {
+    res.status(500).json(error);
+  }
+});
+router.post("/getAudi",async(req,res)=>{
+  const audi=await Audi.findOne({audiId:audiId});
+  if(audi){
+    return res.status(200).json(audi)
+  }
+  return res.status(404).json("No such audi found!")
 });
 router.get("/reservation", async (req, res) => {
-  const { noOfReservedSeats, seatid } = req.body;
-  const theatreId = req.body.theatreId;
+  const { noOfBookedSeats,  bookedSeats,showId} = req.body;
   seatidArray = [];
-  const Newseat = await SeatReserved.findOne({ theatreId });
-  // console.log(Newseat);
-
-  if (!Newseat) {
-    const theatreId = req.body.theatreId;
-    // console.log(theatreId);
-    for (var i = 0; i < noOfReservedSeats; i++) {
-      seatidArray[i] = seatid[i];
+  const Newseat = await Show.findOne({ showId });
+   const audiId=Newseat.theatreId+Newseat.audi;
+   const seatLimit = await Audi.findOne({ audiId });
+  try{
+  if (Newseat.noOfBookedSeats===0) {
+    for (var i = 0; i < noOfBookedSeats; i++) {
+      seatidArray[i] =  bookedSeats[i];
     }
-    // console.log(seatidArray);
-    const newReservation = new SeatReserved({
-      seatid: seatidArray,
-      noOfReservedSeats: noOfReservedSeats,
-      theatreId: theatreId,
-    });
-    Reservation = await newReservation.save();
-    // console.log(Reservation);
-    return res.status(200).json(Reservation);
+    const UpdatedShow = await Show.findByIdAndUpdate(
+      { _id: Newseat._id },
+      { $set: { bookedSeats: seatidArray, noOfBookedSeats: noOfBookedSeats } }
+    );
+    return res.status(200).json(UpdatedShow);
   }
-  if (Newseat) {
-    const newSeats = Newseat.noOfReservedSeats + noOfReservedSeats;
-    for (var i = 0; i < Newseat.noOfReservedSeats; i++) {
-      seatidArray[i] = Newseat.seatid[i];
+    const newSeats = Newseat.noOfBookedSeats + noOfBookedSeats;
+    for (var i = 0; i < Newseat.noOfBookedSeats; i++) {
+      seatidArray[i] = Newseat.bookedSeats[i];
     }
     let j = 0;
-    for (var i = Newseat.noOfReservedSeats; i < newSeats; i++) {
-      seatidArray[i] = seatid[j];
+    for (var i = Newseat.noOfBookedSeats; i < newSeats&&i<seatLimit.noOfseats; i++) {
+      seatidArray[i] = bookedSeats[j];
       j++;
     }
-    // console.log(seatidArray);
-    // console.log(Newseat._id)
-    const UpdatedReservation = await SeatReserved.findByIdAndUpdate(
+    const UpdatedShow = await Show.findByIdAndUpdate(
       { _id: Newseat._id },
-      { $set: { seatid: seatidArray, noOfReservedSeats: newSeats } }
+      { $set: { bookedSeats: seatidArray, noOfBookedSeats: newSeats } }
     );
-    return res.status(200).json(UpdatedReservation.seatid);
+    return res.status(200).json(UpdatedShow);
+  }catch(error)
+  {
+    return res.status(500).json(error)
   }
 });
 router.post("/Cancellation", async (req, res) => {
@@ -112,71 +215,4 @@ router.post("/Cancellation", async (req, res) => {
   );
   const UpdatedReservationSeat= await SeatReserved.findById({_id:Newseat._id});
   return res.status(200).json(UpdatedReservationSeat.seatid);
-});
-router.get("/seatMapping", async (req, res) => {
-  const seatMap = req.body.seatMap;
-  const price = req.body.price;
-  const theatreId = req.body.theatreId; //need theatre id from
-  const newmapDetails = new seatMapping({
-    seatMap: seatMap,
-    price: price,
-    theatreId: theatreId,
-  });
-  const mapDetails = await newmapDetails.save();
-  res.status(200).json(mapDetails);
-});
-router.post("/seatMappingReservation", async (req, res) => {
-  const seatmap = await seatMapping.findOne({ theatreId: req.body.theatreId });
-  if (!seatmap) return res.status(404).json("No such mapping found!");
-  const { theatreId, ...info } = seatmap._doc;
-  res.status(200).json(info);
-});
-
-// // GET ALL
-// router.get("/", verify, async (req, res) => {
-//   const query = req.query.new;
-//   if (req.user.isAdmin) {
-//     try {
-//       const users = query
-//         ? await User.find().sort({ _id: -1 }).limit(10)
-//         : await User.find();
-//       res.status(200).json(users);
-//     } catch (error) {
-//       res.status(200).json(users);
-//     }
-//   } else res.status(403).json("You are not allowed");
-// });
-// //GET USER STATS
-// router.get("/stats", async (req, res) => {
-//   const today = new Date();
-//   const lastYear = today.setFullYear(today.setFullYear() - 1);
-//   const months = [
-//     "January",
-//     "February",
-//     "March",
-//     "April",
-//     "September",
-//     "October",
-//     "November",
-//     "December",
-//   ];
-//   try {
-//     const data = await User.aggregate([
-//       {
-//         $project: {
-//           month: { $month: "$createdAt" },
-//         },
-//       },
-//       {
-//         $group: {
-//           _id: "$month",
-//           total: { $sum: 1 },
-//         },
-//       },
-//     ]);
-//     res.status(200).json(data);
-//   } catch (error) {
-//     res.status(500).send(error);
-//   }
-// });
-module.exports = router;
+});module.exports = router;
